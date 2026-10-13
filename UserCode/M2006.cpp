@@ -11,7 +11,8 @@ M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(esc
      spid(0, 0, 0, 0, 0, 0),ratio_(ratio),control_method_(control_method){
     ppid.reset();
     spid.reset();
-
+    ppid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
+    spid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
 
 
 
@@ -58,7 +59,9 @@ void M2006::handle() {
         spid.reset();
         return;
 
+
     }
+
     fdb_angle_=ecd_angle_;
     fdb_speed_=speedRpm_;
     const float m = 0.150f; // 负载质量
