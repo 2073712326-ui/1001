@@ -1,6 +1,6 @@
-can/callback_1.o: ..\UserCode\callback.cpp ..\UserCode\can_user.h \
-  ..\Core\Inc\can.h ..\Core\Inc\main.h \
-  ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h \
+can/callback_1.o: ..\UserCode\callback.cpp ..\UserCode\M2006.h \
+  ..\UserCode\pid.h ..\UserCode\can_user.h ..\Core\Inc\can.h \
+  ..\Core\Inc\main.h ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h \
   ..\Core\Inc\stm32f4xx_hal_conf.h \
   ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_rcc.h \
   ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_def.h \

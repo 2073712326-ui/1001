@@ -30,6 +30,8 @@ private:
     bool received_ = false;//第一帧特殊处理
     uint8_t tx_data_[8];//待发送
     static constexpr uint16_t kEncoderRange =8192;
+
+    int16_t feedback_current_raw_ = 0;
 }
 
 

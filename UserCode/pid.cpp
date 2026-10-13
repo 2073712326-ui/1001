@@ -1,11 +1,11 @@
-//
+
 // Created by qjy on 2026/10/11.
 //
 
 #include "pid.h"
 
 #include <cstdint>
-#include <sys/select.h>
+
 PID::PID(float kp, float ki, float kd, float i_max,float out_max,float d_filter_k) {
     this->kp = kp;
     this->ki = ki;

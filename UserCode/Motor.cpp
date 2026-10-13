@@ -48,7 +48,6 @@ void Motor::setTxCurrent(float amperes,uint8_t motor_id) {
 }
 uint8_t* Motor::getTXData(){
     return tx_data_;
-
 }
 
 

@@ -6,13 +6,13 @@
 
 
 
-
 M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),ppid(0, 0, 0, 0, 0, 0),
      spid(0, 0, 0, 0, 0, 0),ratio_(ratio),control_method_(control_method){
+    ppid =PID (5.0f,0.0,0.0,0.0,0.0,0.0);
+    spid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
     ppid.reset();
     spid.reset();
-    ppid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
-    spid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
+
 
 
 
@@ -33,47 +33,81 @@ void M2006::setTorque(float torque) {
     target_torque_=torque;
 }
 
-void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//收包
-    uint16_t ecd_angle = static_cast<uint16_t>((rx_data[0]<<8)|rx_data[1]);
-    int16_t speed_rpm = static_cast<int16_t>((rx_data[2]<<8)|rx_data[3]);
-    int16_t output_torque = static_cast<int16_t>((rx_data[4]<<8)|rx_data[5]);
-    last_ecd_angle_=ecd_angle;
-    ecd_angle_=ecd_angle*360.f/8192.f;
-    speedRpm_=speed_rpm;
-    output_torque_=output_torque;
+const uint8_t* M2006::getTXData(){
+    return tx_data_;
+}
 
+void M2006::packTxData() {
+    if (!std::isfinite(command_raw_)) command_raw_ = 0.f;
+    if (command_raw_ > 10000.f) command_raw_ = 10000.f;
+    if (command_raw_ < -10000.f) command_raw_ = -10000.f;
+
+
+    if (escid < 1 || escid > 8) return;
+    const uint8_t index = static_cast<uint8_t>(((escid - 1) % 4 )* 2);
+    const uint16_t raw = static_cast<uint16_t>(command_raw_);
+    tx_data_[index] = static_cast<uint8_t>(raw >> 8);
+    tx_data_[index + 1] = static_cast<uint8_t>(raw & 0xFF);
+}
+
+void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包
+    const uint16_t encoder =static_cast<uint16_t>((rx_data[0] << 8) | rx_data[1]);
+    const int16_t speed_rpm = static_cast<int16_t>((rx_data[2]<<8)|rx_data[3]);
+    const int16_t torque_raw = static_cast<int16_t>((rx_data[4]<<8)|rx_data[5]);
+
+    ecd_angle_=encoder * 360.f/kEncoderRange;
+    speedRpm_=speed_rpm;
+    feedback_torque_raw_ = torque_raw;
+    // DATA[6] and DATA[7] are reserved (Null), not temperature.
+    if (!received_) {
+
+        last_ecd_angle_ = ecd_angle_;
+        received_ = true;
+        return;
+    }
+
+    // Unwrap rotor motion to [-180, 180] before applying the reduction ratio.
     float delta_angle_ecd = ecd_angle_ - last_ecd_angle_;
     if (delta_angle_ecd> 180.f ) {
-        delta_angle_ecd+=360.f;
+        delta_angle_ecd-=360.f;
     }else if (delta_angle_ecd<-180.f) {
-        delta_angle_ecd+=-360.f;
+        delta_angle_ecd+=360.f;
     }
     delta_angle_ = delta_angle_ecd / ratio_;
     angle_+=delta_angle_;
+    last_ecd_angle_ = ecd_angle_;
+
+
 
 }
 void M2006::handle() {
     if (stop_flag == true) {
-        out_torche_=0.f;
+        command_raw_=0.f;
         ppid.reset();
         spid.reset();
+        packTxData();
         return;
 
 
     }
 
-    fdb_angle_=ecd_angle_;
+
+    fdb_angle_=angle_;
     fdb_speed_=speedRpm_;
     const float m = 0.150f; // 负载质量
     const float r = 0.065f; // 负载重心到输出轴距离
     const float g = 9.81f; // 重力加速度
-    float rad = ecd_angle_ * M_PI / 180.0f;
+    const float PI = 3.14159265358979323846f;
+    float rad = ecd_angle_ * PI / 180.0f;
+
     float feedforward_intensity_= m * r * g * sin(rad);
 
-    float target_speed_ =ppid.calc(target_angle_, fdb_angle_)+ feedforward_speed_;
-    float intensity_float_ = spid.calc(target_speed_, fdb_speed_)+feedforward_intensity_;
-    float fdb_intensity_=intensity_float_+feedforward_intensity_;
-    output_torque_ = intensity_float_ + fdb_intensity_;
+    target_speed_ = ppid.calc(target_angle_, fdb_angle_) + feedforward_speed_;
+
+    command_raw_ = spid.calc(target_speed_, fdb_speed_)
+                 + feedforward_intensity_;
+    
+    packTxData();
 }
 
 
@@ -84,4 +118,3 @@ void M2006::handle() {
 
 
 
-}

@@ -692,6 +692,36 @@
               <FileType>8</FileType>
               <FilePath>..\UserCode\Motor.cpp</FilePath>
             </File>
+            <File>
+              <FileName>M2006.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\UserCode\M2006.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UserCode\pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\UserCode\pid.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Motor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\Motor.h</FilePath>
+            </File>
+            <File>
+              <FileName>can_user.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\can_user.h</FilePath>
+            </File>
+            <File>
+              <FileName>M2006.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\UserCode\M2006.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

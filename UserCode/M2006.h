@@ -5,7 +5,7 @@
 #ifndef CAN_M2006_H
 #define CAN_M2006_H
 #include "pid.h"
-#include "stm32f4xx_hal.h"
+#include <cstdint>
 
 typedef enum ControlMethod
 {
@@ -24,11 +24,12 @@ public:
     void setIntensity(float intensity);//保存电机驱动控制量
     void setTorque(float torque);//保存输出力矩
     void canRxMSgCallback(const uint8_t rx_data[8]);//收包
-
-    bool stop_flag = true;
+    const uint8_t* getTXData();
+    bool stop_flag =false;
 
 
 private:
+    void packTxData();
     const uint8_t escid;//电调号
     PID ppid,spid;
     float target_angle_=0.0f,fdb_angle_= 0.0f;//
@@ -47,7 +48,10 @@ private:
     float out_torche_=0.0;//转矩
     float last_ecd_angle_=0.0;//上一帧角度，用来求差 不带减速比
     static constexpr uint16_t kEncoderRange =8192;
-
+    uint8_t tx_data_[8]={};//CAN发送缓冲区
+    int16_t feedback_torque_raw_ = 0;
+    float command_raw_=0.0f;
+    bool received_=false;
 
 
 
