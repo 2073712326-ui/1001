@@ -4,30 +4,35 @@
 #include "M2006.h"
 #include <cmath>
 
+
+
+
 M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),ppid(0, 0, 0, 0, 0, 0),
      spid(0, 0, 0, 0, 0, 0),ratio_(ratio),control_method_(control_method){
     ppid.reset();
     spid.reset();
 
 
+
+
 }
 void M2006::setPosition(float target_position, float feedforward_speed, float feedforward_intensity){
     control_method_=POSITION_SPEED;//双环控制模式
-    target_angle_=target_position;
-    feedforward_speed_=feedforward_speed;
-    feedforward_intensity_=feedforward_intensity;
+    target_angle_=target_position;//target_position里保存目标角度
+    feedforward_speed_=feedforward_speed;//feedforward_speed里保存前向速度
+    feedforward_intensity_=feedforward_intensity;//feedforward_intensity里保存前馈
 }
 void M2006::setSpeed(float target_speed, float feedforward_intensity){
-    control_method_=SPEED;
+    control_method_=SPEED;//速度控制模式
     target_speed_=target_speed;
     feedforward_intensity_=feedforward_intensity;
 }
 void M2006::setTorque(float torque) {
-    control_method_=TORQUE;
+    control_method_=TORQUE;//力矩控制模式
     target_torque_=torque;
 }
 
-void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {
+void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//收包
     uint16_t ecd_angle = static_cast<uint16_t>((rx_data[0]<<8)|rx_data[1]);
     int16_t speed_rpm = static_cast<int16_t>((rx_data[2]<<8)|rx_data[3]);
     int16_t output_torque = static_cast<int16_t>((rx_data[4]<<8)|rx_data[5]);
@@ -46,7 +51,6 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {
     angle_+=delta_angle_;
 
 }
-void set
 void M2006::handle() {
     if (stop_flag == true) {
         out_torche_=0.f;
@@ -57,8 +61,12 @@ void M2006::handle() {
     }
     fdb_angle_=ecd_angle_;
     fdb_speed_=speedRpm_;
+    const float m = 0.150f; // 负载质量
+    const float r = 0.065f; // 负载重心到输出轴距离
+    const float g = 9.81f; // 重力加速度
     float rad = ecd_angle_ * M_PI / 180.0f;
-    float feedforward_intensity_= kTorque * cos(rad);
+    float feedforward_intensity_= m * r * g * sin(rad);
+
     float target_speed_ =ppid.calc(target_angle_, fdb_angle_)+ feedforward_speed_;
     float intensity_float_ = spid.calc(target_speed_, fdb_speed_)+feedforward_intensity_;
     float fdb_intensity_=intensity_float_+feedforward_intensity_;

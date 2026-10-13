@@ -5,12 +5,17 @@
 #include "can_user.h"
 #include "Motor.hpp"
 #include "tim.h"
+#include <cmath>
+
 
 
 extern CAN_HandleTypeDef hcan1;
-static float gravityTorqueCalc (float output_angle)
 
-M2006 motor(5,36.0f,POSITION_SPEED);
+
+
+
+
+M2006 motor(5, 36.f, POSITION_SPEED);
 constexpr uint32_t kMotor1FeedbackId =0x202;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     uint8_t data[8];
@@ -22,15 +27,25 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     }
 
 }
-
+uint32_t tick,last_tick;
+float position_cmd = 0.f;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {// 1kHz定时器中断
+
     if (htim->Instance !=TIM6) return;
     if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) >0) {
         HAL_CAN_AddTxMessage(&hcan1,&tx_header,motor.getTXData(),&can_tx_mailbox);
-    if (htim == htim6 )
+        if (htim == &htim6) {
+            // motor1.Handle();
+            tick = HAL_GetTick();
+            if (tick - last_tick > 500) {
+                position_cmd += 10.f;
+                last_tick = tick;
+            }
+            motor.setPosition(position_cmd, 0.0f, 0.0f);
+            motor. handle();
 
 
-        M2006 handle();
+        }
     }
 }
 

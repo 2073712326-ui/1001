@@ -24,6 +24,7 @@ public:
     void setIntensity(float intensity);//保存电机驱动控制量
     void setTorque(float torque);//保存输出力矩
     void canRxMSgCallback(const uint8_t rx_data[8]);//收包
+
     bool stop_flag = true;
 
 
