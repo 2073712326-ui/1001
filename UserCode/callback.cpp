@@ -29,11 +29,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
     if (htim->Instance !=TIM6) return;
     if (htim == &htim6) {
-        //    tick = HAL_GetTick();
-        //    if (tick - last_tick > 500) {
-        //        position_cmd += 10.f;
-        //        last_tick = tick;
-        //    }
+          tick = HAL_GetTick();
+          if (tick - last_tick > 500) {
+              position_cmd += 10.f;
+              last_tick = tick;
+          }
         motor.setPosition(position_cmd, 0.0f,0.0f);
         motor.handle();
     }

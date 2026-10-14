@@ -7,8 +7,8 @@
 
 
 M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),
-ppid(0, 0, 0, 0, 0, 0),
-spid(0.05, 0, 0, 0, 1, 0),
+ppid(80, 0, 2200, 0, 400, 0.3),
+spid(0.003, 0, 0.03, 0, 1, 0),
 ratio_(ratio),
 control_method_(control_method),
 torque_constant_(0.18 * ratio /36.0f){
@@ -57,7 +57,7 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
     const int16_t torque_raw = static_cast<int16_t>((rx_data[4]<<8)|rx_data[5]);
 
     ecd_angle_=ecd_angle * 360.f/kEncoderRange;
-    speedRpm_=speed_rpm;
+    speedRpm_=speed_rpm / ratio_;
     feedback_torque_raw_ = torque_raw;
 
     if (!received_) {
@@ -80,6 +80,7 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
 
 
 }
+
 void M2006::handle() {
     if (stop_flag == true) {
         output_torque_=0.f;
