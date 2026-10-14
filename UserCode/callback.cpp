@@ -7,9 +7,10 @@
 #include "tim.h"
 #include <cmath>
 
+
 extern CAN_HandleTypeDef hcan1;
 
-M2006 motor(1, 36.f, POSITION_SPEED);
+M2006 motor(1, 36.f, SPEED);
 constexpr uint32_t kMotor1FeedbackId =0x201;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     uint8_t data[8];
@@ -32,11 +33,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {// 1kHz定时器中
             position_cmd += 10.f;
             last_tick = tick;
         }
-        motor.setPosition(position_cmd, 0.0f, 0.0f);
+        motor.setPosition(position_cmd, 0.0f,0.0f);
         motor.handle();
     }
     if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0) {
-        HAL_CAN_AddTxMessage(&hcan1,&tx_header,motor.getTXData(),&can_tx_mailbox);
+        HAL_CAN_AddTxMessage(&hcan1,&tx_header,motor.getTXData(),&can_tx_mailbox);//发送CAN报文
     }
 }
 

@@ -33,14 +33,14 @@ void M2006::setTorque(float torque) {
     target_torque_=torque;
 }
 
-const uint8_t* M2006::getTXData(){
+const uint8_t* M2006::getTXData(){//
     return tx_data_;
 }
 
-void M2006::packTxData() {
+void M2006::packTxData() {//准备数据
     if (!std::isfinite(command_raw_)) command_raw_ = 0.f;
     if (command_raw_ > 10000.f) command_raw_ = 10000.f;
-    if (command_raw_ < -10000.f) command_raw_ = -10000.f;
+    if (command_raw_ < -10000.f) command_raw_ = -10000.f;//单位mA
 
 
     if (escid < 1 || escid > 8) return;
@@ -50,15 +50,15 @@ void M2006::packTxData() {
     tx_data_[index + 1] = static_cast<uint8_t>(raw & 0xFF);
 }
 
-void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包
-    const uint16_t encoder =static_cast<uint16_t>((rx_data[0] << 8) | rx_data[1]);
+void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
+    const uint16_t ecd_angle =static_cast<uint16_t>((rx_data[0] << 8) | rx_data[1]);
     const int16_t speed_rpm = static_cast<int16_t>((rx_data[2]<<8)|rx_data[3]);
     const int16_t torque_raw = static_cast<int16_t>((rx_data[4]<<8)|rx_data[5]);
 
-    ecd_angle_=encoder * 360.f/kEncoderRange;
+    ecd_angle_=ecd_angle * 360.f/kEncoderRange;
     speedRpm_=speed_rpm;
     feedback_torque_raw_ = torque_raw;
-    // DATA[6] and DATA[7] are reserved (Null), not temperature.
+
     if (!received_) {
 
         last_ecd_angle_ = ecd_angle_;
@@ -66,14 +66,13 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包
         return;
     }
 
-    // Unwrap rotor motion to [-180, 180] before applying the reduction ratio.
-    float delta_angle_ecd = ecd_angle_ - last_ecd_angle_;
-    if (delta_angle_ecd> 180.f ) {
-        delta_angle_ecd-=360.f;
-    }else if (delta_angle_ecd<-180.f) {
-        delta_angle_ecd+=360.f;
+    float delta_ecd_angle = ecd_angle_ - last_ecd_angle_;
+    if (delta_ecd_angle> 180.f ) {
+        delta_ecd_angle-=360.f;
+    }else if (delta_ecd_angle<-180.f) {
+        delta_ecd_angle+=360.f;
     }
-    delta_angle_ = delta_angle_ecd / ratio_;
+    delta_angle_ = delta_ecd_angle/ ratio_;
     angle_+=delta_angle_;
     last_ecd_angle_ = ecd_angle_;
 
@@ -98,15 +97,15 @@ void M2006::handle() {
     const float r = 0.065f; // 负载重心到输出轴距离
     const float g = 9.81f; // 重力加速度
     const float PI = 3.14159265358979323846f;
-    float rad = ecd_angle_ * PI / 180.0f;
+    float rad = fdb_angle_ * PI / 180.0f;//弧度制转换
 
-    float feedforward_intensity_= m * r * g * sin(rad);
+    float feedforward_intensity_= m * r * g * sin(rad);//算出前馈
 
     target_speed_ = ppid.calc(target_angle_, fdb_angle_) + feedforward_speed_;
 
     command_raw_ = spid.calc(target_speed_, fdb_speed_)
                  + feedforward_intensity_;
-    
+
     packTxData();
 }
 
