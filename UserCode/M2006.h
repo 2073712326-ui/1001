@@ -25,7 +25,7 @@ public:
     void setTorque(float torque);//保存输出力矩
     void canRxMSgCallback(const uint8_t rx_data[8]);//解包函数
     const uint8_t* getTXData();//收包
-    bool stop_flag =false;
+    bool stop_flag =true;
 
 
 private:

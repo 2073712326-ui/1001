@@ -81,7 +81,7 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
 
 }
 void M2006::handle() {
-    if (stop_flag == true) {
+    if (stop_flag == false) {
         output_torque_=0.f;
         ppid.reset();
         spid.reset();
@@ -107,7 +107,7 @@ void M2006::handle() {
     output_torque_ = spid.calc(target_speed_, fdb_speed_)
                  + feedforward_intensity_;
 
-    command_raw_ = target_torque_/0.18;
+    command_raw_ = (int16_t)((output_torque_ / torque_constant_) * 1000.0f);
 
     packTxData();
 }

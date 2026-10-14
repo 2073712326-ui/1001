@@ -27,15 +27,15 @@ float position_cmd = 0.f;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {// 1kHz定时器中断
 
     if (htim->Instance !=TIM6) return;
-    if (htim == &htim6) {
-        tick = HAL_GetTick();
-        if (tick - last_tick > 500) {
-            position_cmd += 10.f;
-            last_tick = tick;
+        if (htim == &htim6) {
+    //     tick = HAL_GetTick();
+    //     if (tick - last_tick > 500) {
+    //         position_cmd += 10.f;
+    //         last_tick = tick;
+    //     }
+    //     motor.setPosition(position_cmd, 0.0f,0.0f);
+           motor.handle();
         }
-        motor.setPosition(position_cmd, 0.0f,0.0f);
-        motor.handle();
-    }
     if (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) > 0) {
         HAL_CAN_AddTxMessage(&hcan1,&tx_header,motor.getTXData(),&can_tx_mailbox);//发送CAN报文
     }
