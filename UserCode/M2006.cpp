@@ -8,7 +8,7 @@
 
 M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),
 ppid(0, 0, 0, 0, 0, 0),
-spid(0, 0, 0, 0, 0, 0),
+spid(0.05, 0, 0, 0, 1, 0),
 ratio_(ratio),
 control_method_(control_method),
 torque_constant_(0.18 * ratio /36.0f){
@@ -81,7 +81,7 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
 
 }
 void M2006::handle() {
-    if (stop_flag == false) {
+    if (stop_flag == true) {
         output_torque_=0.f;
         ppid.reset();
         spid.reset();
