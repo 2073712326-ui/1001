@@ -6,17 +6,18 @@
 
 
 
-M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),ppid(0, 0, 0, 0, 0, 0),
-     spid(0, 0, 0, 0, 0, 0),ratio_(ratio),control_method_(control_method){
-    ppid =PID (5.0f,0.0,0.0,0.0,0.0,0.0);
-    spid =PID (0.0,0.0,0.0,0.0,0.0,0.0);
+M2006::M2006(uint8_t escid, float ratio, ControlMethod control_method):escid(escid),
+ppid(0, 0, 0, 0, 0, 0),
+spid(0, 0, 0, 0, 0, 0),
+ratio_(ratio),
+control_method_(control_method),
+torque_constant_(0.18 * ratio /36.0f){
     ppid.reset();
     spid.reset();
-
-
-
-
 }
+
+
+
 void M2006::setPosition(float target_position, float feedforward_speed, float feedforward_intensity){
     control_method_=POSITION_SPEED;//双环控制模式
     target_angle_=target_position;//target_position里保存目标角度
@@ -81,7 +82,7 @@ void M2006::canRxMSgCallback(const uint8_t rx_data[8]) {//解包函数
 }
 void M2006::handle() {
     if (stop_flag == true) {
-        command_raw_=0.f;
+        output_torque_=0.f;
         ppid.reset();
         spid.reset();
         packTxData();
@@ -103,8 +104,10 @@ void M2006::handle() {
 
     target_speed_ = ppid.calc(target_angle_, fdb_angle_) + feedforward_speed_;
 
-    command_raw_ = spid.calc(target_speed_, fdb_speed_)
+    output_torque_ = spid.calc(target_speed_, fdb_speed_)
                  + feedforward_intensity_;
+
+    command_raw_ = target_torque_/0.18;
 
     packTxData();
 }

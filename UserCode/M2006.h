@@ -52,6 +52,7 @@ private:
     int16_t feedback_torque_raw_ = 0;
     float command_raw_=0.0f;
     bool received_=false;
+    const float torque_constant_;//转矩常数
 
 
 
